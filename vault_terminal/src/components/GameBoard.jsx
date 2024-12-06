@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Word from "./Word";
+import { Typewriter } from "react-simple-typewriter";
 
 function GameBoard() {
   // List of words in the game
@@ -91,7 +92,7 @@ function GameBoard() {
   }, []);
 
   return (
-    <section className=" font-mono font-bold text-green-500 border-green-500 border-2 p-10 w-full flex flex-col justify-center m-[20vw] rounded-3xl cursor-default">
+    <section className=" font-mono font-bold text-green-500 border-green-500 border-2 p-10 w-full flex flex-col justify-center m-[20vw] rounded-3xl cursor-default text-[1rem]">
       {/* Header */}
       <header className=" space-y-2 text-xl">
         <h1>[ Vault 111 Terminal ]</h1>
@@ -144,8 +145,15 @@ function GameBoard() {
         </section>
         {/* Feedback */}
         <section className="flex flex-col-reverse">
-          <p>> {hoverWord}</p>
+          <Typewriter
+            key={hoverWord}
+            words={[`> ${hoverWord}`]} // Use backticks to create a string with hoverWord
+            // cursor
+            // cursorStyle="|"
+            typeSpeed={30}
+          />
         </section>
+
         {/* Reset Game */}
         {/* <button
           onClick={initializeGameWords}
