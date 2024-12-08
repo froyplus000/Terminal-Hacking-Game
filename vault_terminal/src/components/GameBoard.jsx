@@ -1,8 +1,8 @@
-import { useState } from "react";
-import Word from "./Word";
+import { useState, useEffect, useRef } from "react";
 import { Typewriter } from "react-simple-typewriter";
+import ReactAudioPlayer from "react-audio-player";
 
-function GameBoard() {
+function GameBoard({ setPage }) {
   // List of words in the game
   const wordList = [
     "Vault",
@@ -44,10 +44,12 @@ function GameBoard() {
 
   const [selectedWords, setSelectedWord] = useState([]); // List of selected word will be use in a single game. (8-12 words)
   const [attempt, setAttempt] = useState(4); // Remaining Attemps
-  const [hoverWord, setHoverWord] = useState("John"); // HoverWord to perform typing animation in Feedback Section
+  const [hoverWord, setHoverWord] = useState(""); // HoverWord to perform typing animation in Feedback Section
   const [gameState, setGameState] = useState(0); // Game state, 0 = Playing, 1 = Pass, 2 = Failed
   const [hex1, setHex1] = useState([]);
   const [hex2, setHex2] = useState([]);
+
+  const typingSound = useRef(new Audio("/assets/typing2.mp3")); // Use `useRef` for persistent audio object
 
   // Initialize Selected word for game.
   function initializeGameWords() {
@@ -84,12 +86,34 @@ function GameBoard() {
     setHex(hexArray); // Once done, setHex to the generated array.
   }
 
-  // Initialize the game words when the component loads
+  // Initialize when the component loads
   useState(() => {
-    initializeGameWords();
+    initializeGameWords(); // Select initial game words (8 - 15)
+    // Get random hex value for UI
     GenerateHex(setHex1);
     GenerateHex(setHex2);
   }, []);
+
+  function handleHover(word) {
+    setHoverWord(word);
+  }
+
+  useEffect(() => {
+    const playSound = () => {
+      // Pause any current playback
+      typingSound.current.pause();
+      typingSound.current.currentTime = Math.random(); // Random starting time of an audio to make it sound better, each time hover play different point
+      typingSound.current.playbackRate = 1.5;
+      // Play the new sound
+      typingSound.current.play().catch((error) => {
+        console.error("Error playing sound:", error);
+      });
+    };
+
+    if (hoverWord) {
+      playSound();
+    }
+  }, [hoverWord]);
 
   return (
     <section className=" font-mono font-bold text-green-500 border-green-500 border-2 p-10 w-full flex flex-col justify-center m-[20vw] rounded-3xl cursor-default text-[1rem]">
@@ -100,7 +124,7 @@ function GameBoard() {
         <p>Attempts Remaining : {attempt}</p>
       </header>
 
-      <section className="grid grid-cols-[1fr,2fr,1fr,2fr,1.5fr] grid-rows-1 gap-2 mt-6 text-[1.2rem]">
+      <section className="grid grid-cols-[1fr,2fr,1fr,2fr,2fr] grid-rows-1 gap-2 mt-6 text-[1.2rem]">
         {/* Hexadecimal Blocks 1 */}
         <section>
           {hex1.map((hexValue, index) => (
@@ -116,7 +140,7 @@ function GameBoard() {
             <p
               key={index}
               className="hover:bg-green-500 hover:text-black inline-block px-[.15rem] cursor-pointer"
-              onMouseEnter={() => setHoverWord(word)} // Update hover word
+              onMouseEnter={() => handleHover(word)} // Update hover word
               // onClick={selectedWords(word)}
             >
               {word}
@@ -126,7 +150,7 @@ function GameBoard() {
 
         {/* Hexadecimal Blocks 2 */}
         <section>
-          {hex1.map((hexValue, index) => (
+          {hex2.map((hexValue, index) => (
             <p key={index} className="cursor-default">
               {hexValue}
             </p>
@@ -144,23 +168,31 @@ function GameBoard() {
           <p>John</p>
         </section>
         {/* Feedback */}
-        <section className="flex flex-col-reverse">
+        <section className="flex items-end">
           <Typewriter
             key={hoverWord}
             words={[`> ${hoverWord}`]} // Use backticks to create a string with hoverWord
-            // cursor
-            // cursorStyle="|"
-            typeSpeed={30}
+            cursor
+            cursorBlinking
+            typeSpeed={40}
           />
         </section>
+      </section>
 
+      <section className="flex mt-6 gap-3">
         {/* Reset Game */}
-        {/* <button
+        <button
           onClick={initializeGameWords}
-          className="mt-6 bg-green-500 text-black px-10 py-2 rounded hover:bg-green-700"
+          className=" bg-green-500 text-black px-10 py-2 rounded hover:bg-green-600 transition-all w-[50%]"
         >
           Reset Game
-        </button> */}
+        </button>
+        <button
+          onClick={() => setPage("menu")}
+          className=" bg-green-500 text-black px-10 py-2 rounded hover:bg-green-600 transition-all w-[50%] "
+        >
+          Back to Menu
+        </button>
       </section>
     </section>
   );
