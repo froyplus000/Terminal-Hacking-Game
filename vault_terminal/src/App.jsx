@@ -8,11 +8,13 @@ function App() {
   const [page, setPage] = useState("menu");
 
   return (
-    <main className="w-screen h-screen flex justify-center items-center">
-      {/* Conditional rendering based on the current page */}
-      {page === "menu" && <Menu setPage={setPage} />}
-      {page === "game" && <GameBoard setPage={setPage} />}
-      {page === "tutorial" && <Tutorial setPage={setPage} />}
+    <main className="font-mono font-bold text-green-500">
+      <section className=" w-screen h-screen flex justify-center items-center">
+        {/* Conditional rendering based on the current page */}
+        {page === "menu" && <Menu setPage={setPage} />}
+        {page === "game" && <GameBoard setPage={setPage} />}
+        {page === "tutorial" && <Tutorial setPage={setPage} />}
+      </section>
     </main>
   );
 }
