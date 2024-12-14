@@ -15,7 +15,7 @@ function Menu({ setPage }) {
         Tutorial
       </button>
       <div className=" mt-5 border-green-700 border-2 px-10 py-3 rounded-xl text-center text-sm">
-        <h3 className=" uppercase text-lg mb-2">Disclaimer</h3>
+        <h3 className=" uppercase text-lg mb-2">NOTE</h3>
         <p className=" ">
           The game may contain sound effects. This project is for learning
           purposes only. Sound effects provided by{" "}

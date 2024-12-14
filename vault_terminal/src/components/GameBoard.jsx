@@ -45,8 +45,9 @@ function GameBoard({ setPage }) {
   ];
 
   const [selectedWords, setSelectedWord] = useState([]); // List of selected word will be use in a single game. (8-12 words)
-  const [password, setPassword] = useState("");
+  const [password, setPassword] = useState(""); // The password randomly chosen for each game
   const [attempt, setAttempt] = useState(4); // Remaining Attemps
+  const [entryHistory, setEntryHistory] = useState([]); // Track all past entries
   const [hoverWord, setHoverWord] = useState(""); // HoverWord to perform typing animation in Feedback Section
   const [gameState, setGameState] = useState(0); // Game state, 0 = Playing, 1 = Win, 2 = Lose
   const [hex1, setHex1] = useState([]);
@@ -54,6 +55,7 @@ function GameBoard({ setPage }) {
 
   const typingSound = useRef(new Audio("/assets/typing.mp3")); // Use `useRef` for persistent audio object
   const failSound = useRef(new Audio("/assets/fail.mp3"));
+  const unlockSound = useRef(new Audio("/assets/unlock.mp3"));
 
   // Initialize Selected word for game.
   function StartGame() {
@@ -76,8 +78,11 @@ function GameBoard({ setPage }) {
     setPassword(randomCorrectPassword);
 
     console.log("Correct Password:", randomCorrectPassword); // Debugging
+
     setAttempt(4);
     setGameState(0);
+    setHoverWord("");
+    setEntryHistory([]);
   }
 
   function GenerateHex(setHex) {
@@ -130,30 +135,62 @@ function GameBoard({ setPage }) {
   }, [hoverWord]);
 
   function handleWordClick(word) {
-    if (word === password) {
-      setGameState(1); // Player Win
-      handleEntrySound(1); // Pass success (1) to handleEntrySound
-    } else {
-      setAttempt((prev) => prev - 1); // Decrease attempts
-      handleEntrySound(0); // Pass failure (0) to handleEntrySound
-      console.log("Remaining Attempts:", attempt);
+    if (gameState !== 0) return; // If the game is over, do nothing
 
-      if (attempt - 1 <= 0) {
-        setGameState(2); // Player Lose
-        console.log("Unsuccessful, Access Denied!!");
-        return;
-      }
+    const likelinessScore = calculateLikeliness(password, word);
+
+    // Update the history with the new entry
+    setEntryHistory((prevHistory) => [
+      ...prevHistory,
+      { word, likeliness: likelinessScore },
+    ]);
+
+    if (word === password) {
+      setGameState(1); // Player wins
+      handleEntrySound(1); // Play success sound
+      return;
     }
+
+    // Decrease attempts and check if game ends
+    setAttempt((prev) => {
+      const newAttempts = prev - 1;
+      if (newAttempts <= 0) {
+        setGameState(2); // Player loses
+        handleEntrySound(0); // Play failure sound
+      } else {
+        handleEntrySound(0); // Play failure sound for incorrect guess
+      }
+      return newAttempts;
+    });
   }
 
   function handleEntrySound(result) {
+    // Fail, Play the fail sound
     if (result === 0) {
-      // Play the fail sound
-      failSound.current.currentTime = 0; // Reset to the beginning
+      failSound.current.currentTime = 0;
+      failSound.current.volume = 0.12;
       failSound.current.play().catch((error) => {
         console.error("Error playing sound:", error);
       });
     }
+    // Success, Play the unlock sound
+    if (result === 1) {
+      unlockSound.current.currentTime = 0;
+      unlockSound.current.volume = 1;
+      unlockSound.current.play().catch((error) => {
+        console.error("Error playing sound:", error);
+      });
+    }
+  }
+
+  function calculateLikeliness(password, guess) {
+    let matches = 0;
+    for (let i = 0; i < password.length; i++) {
+      if (password[i] === guess[i]) {
+        matches++;
+      }
+    }
+    return matches;
   }
 
   return (
@@ -180,7 +217,12 @@ function GameBoard({ setPage }) {
           handleWordClick={handleWordClick}
         />
 
-        <Feedback hoverWord={hoverWord} gameState={gameState} />
+        {/* Need to be update when EntryWord and Likeliness change */}
+        <Feedback
+          hoverWord={hoverWord}
+          gameState={gameState}
+          entryHistory={entryHistory}
+        />
       </section>
 
       {/* Feedback - Mobile */}
