@@ -26,8 +26,8 @@ function Feedback({ hoverWord, gameState, entryHistory }) {
       <div className="mt-4">
         {entryHistory.map((entry, index) => (
           <p key={index}>
-            <br />> Entry={entry.word}
-            <br />> Likeliness={entry.likeliness} <br />
+            <br />> Entry = {entry.word}
+            <br />> Likeliness = {entry.likeliness} <br />
           </p>
         ))}
       </div>

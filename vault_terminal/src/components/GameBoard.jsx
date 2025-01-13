@@ -7,23 +7,143 @@ import Feedback from "./Feedback";
 function GameBoard({ setPage }) {
   // List of words in the game
   const wordList = [
-    "Vault",
-    "Security",
-    "Failure",
-    "Override",
-    "Password",
-    "Error",
-    "Escape",
-    "Admin",
-    "Login",
-    "Protocol",
-    "Terminal",
-    "Reactor",
-    "Hacker",
-    "Memory",
-    "Control",
+    "breaker",
+    "tracker",
+    "cracker",
+    "bracket",
+    "hacker",
+    "racket",
+    "stacker",
+    "slacker",
+    "reactor",
+    "tractor",
+    "flicker",
+    "clicker",
+    "speaker",
+    "sticker",
+    "pickers",
+    "packers",
+    "bravers",
+    "dreamer",
+    "severed",
+    "cleared",
+    "charmer",
+    "lighter",
+    "fighter",
+    "glimmer",
+    "shatter",
+    "splatter",
+    "scatter",
+    "flutter",
+    "stagger",
+    "trigger",
+    "brittle",
+    "whistle",
+    "grapple",
+    "captive",
+    "caution",
+    "curtain",
+    "fortune",
+    "future",
+    "venture",
+    "capture",
+    "fracture",
+    "gesture",
+    "pattern",
+    "letters",
+    "factors",
+    "sectors",
+    "vectors",
+    "mentor",
+    "hunter",
+    "winter",
+    "dinner",
+    "banner",
+    "manner",
+    "hammer",
+    "buffer",
+    "safer",
+    "career",
+    "sphere",
+    "desire",
+    "empire",
+    "revive",
+    "derive",
+    "divide",
+    "unite",
+    "remote",
+    "resort",
+    "report",
+    "export",
+    "import",
+    "upvote",
+    "device",
+    "decide",
+    "inside",
+    "guided",
+    "aerial",
+    "serial",
+    "period",
+    "legacy",
+    "reward",
+    "remark",
+    "entity",
+    "felony",
+    "agency",
+    "memory",
+    "victor",
+    "factor",
+    "mirror",
+    "terror",
+    "forest",
+    "digest",
+    "subtle",
+    "gentle",
+    "hustle",
+    "bottle",
+    "battle",
+    "rattle",
+    "better",
+    "setter",
+    "letter",
+    "writer",
+    "bitten",
+    "rotten",
+    "hidden",
+    "ridden",
+    "shield",
+    "wield",
+    "field",
+    "build",
+    "guild",
+    "child",
+    "wilds",
+    "sands",
+    "singer",
+    "finger",
+    "linger",
+    "danger",
+    "ranger",
+    "hanger",
+    "anchor",
+    "mentor",
+    "return",
+    "reform",
+    "retake",
+    "revoke",
+    "reacts",
+    "refine",
+    "refund",
+    "revamp",
+    "marker",
+    "worker",
+    "trader",
+    "loader",
+    "leader",
+    "reader",
+    "dealer",
+    "singer",
   ];
-
   // Hexadecimal values
   const hexValue = [
     "0",
@@ -43,19 +163,22 @@ function GameBoard({ setPage }) {
     "E",
     "F",
   ];
-
+  // State variables
   const [selectedWords, setSelectedWord] = useState([]); // List of selected word will be use in a single game. (8-12 words)
+  const [hex1, setHex1] = useState([]); // Hex value for the left block
+  const [hex2, setHex2] = useState([]); // Hex value for the right block
+  const [firstBlockWords, setFirstBlockWords] = useState([]); // Left block word
+  const [secondBlockWords, setSecondBlockWords] = useState([]); // Right block word
   const [password, setPassword] = useState(""); // The password randomly chosen for each game
   const [attempt, setAttempt] = useState(4); // Remaining Attemps
   const [entryHistory, setEntryHistory] = useState([]); // Track all past entries
   const [hoverWord, setHoverWord] = useState(""); // HoverWord to perform typing animation in Feedback Section
   const [gameState, setGameState] = useState(0); // Game state, 0 = Playing, 1 = Win, 2 = Lose
-  const [hex1, setHex1] = useState([]);
-  const [hex2, setHex2] = useState([]);
-
-  const typingSound = useRef(new Audio("/assets/typing.mp3")); // Use `useRef` for persistent audio object
+  // Audio UseRef Vairables - Need to use useRef to store the audio object to prevent re-rendering
+  const typingSound = useRef(new Audio("/assets/typing.mp3"));
   const failSound = useRef(new Audio("/assets/fail.mp3"));
   const unlockSound = useRef(new Audio("/assets/unlock.mp3"));
+  const deniedSound = useRef(new Audio("/assets/denied.mp3"));
 
   // Initialize Selected word for game.
   function StartGame() {
@@ -65,20 +188,25 @@ function GameBoard({ setPage }) {
     const selected = shuffled.slice(
       // Range start from 0
       0,
-      // Get random range number from 8 - 12 "Math.floor(Math.random() * (max - min) ) + min;"
-      // This game will need to have word range at least 8 to 12, so the range will be start from 0 to (8-12)
-      Math.floor(Math.random() * (12 - 8 + 1)) + 8
+      // Get random range number from 8 - 15 : "Math.floor(Math.random() * (max - min) ) + min;"
+      // This game will need to have word range at least 8 to 15, so the range will be start from 0 to (8-15)
+      Math.floor(Math.random() * (15 - 8 + 1)) + 8
     );
     // Once we got those new array that store Selected words from shuffled words array, set those value to selected(useState)
     setSelectedWord(selected);
+    // Split the selected words into two blocks
+    const midIndex = Math.ceil(selected.length / 2);
+    setFirstBlockWords(selected.slice(0, midIndex));
+    setSecondBlockWords(selected.slice(midIndex));
 
     // Randomly choose one word as the correct password
     const randomCorrectPassword =
       selected[Math.floor(Math.random() * selected.length)];
     setPassword(randomCorrectPassword);
 
-    console.log("Correct Password:", randomCorrectPassword); // Debugging
+    console.log("Correct Password:", randomCorrectPassword); // Debugging, DELETE LATER
 
+    // Reset the game state - NEW GAME
     setAttempt(4);
     setGameState(0);
     setHoverWord("");
@@ -87,8 +215,8 @@ function GameBoard({ setPage }) {
 
   function GenerateHex(setHex) {
     let hexArray = [];
-    // Generate 2 rolls of Hex value
-    // generate hexvalue 15 times per roll
+    // Generate 2 Columns of Hex value
+    // generate hexvalue 15 rows for each column
     for (let index = 0; index < 15; index++) {
       // Random
       const shuffledHex = hexValue.toSorted(() => Math.random() - 0.5);
@@ -105,11 +233,11 @@ function GameBoard({ setPage }) {
   }
 
   // Initialize when the component loads
-  useState(() => {
-    StartGame(); // Select initial game words (8 - 15)
-    // Get random hex value for UI
-    GenerateHex(setHex1);
-    GenerateHex(setHex2);
+  useEffect(() => {
+    console.log("useEffect called!"); // Debugging
+    StartGame(); // Call StartGame when the component is first loaded
+    GenerateHex(setHex1); // Generate a random hex value for UI
+    GenerateHex(setHex2); // Generate another random hex value for UI
   }, []);
 
   // Handle Hovering Word
@@ -137,9 +265,9 @@ function GameBoard({ setPage }) {
   function handleWordClick(word) {
     if (gameState !== 0) return; // If the game is over, do nothing
 
+    // Call function to calculate the likeliness of the word to the password
     const likelinessScore = calculateLikeliness(password, word);
 
-    // Update the history with the new entry
     setEntryHistory((prevHistory) => [
       ...prevHistory,
       { word, likeliness: likelinessScore },
@@ -156,7 +284,7 @@ function GameBoard({ setPage }) {
       const newAttempts = prev - 1;
       if (newAttempts <= 0) {
         setGameState(2); // Player loses
-        handleEntrySound(0); // Play failure sound
+        handleEntrySound(2); // Play failure sound
       } else {
         handleEntrySound(0); // Play failure sound for incorrect guess
       }
@@ -181,16 +309,32 @@ function GameBoard({ setPage }) {
         console.error("Error playing sound:", error);
       });
     }
+    // Fail and Lose, Play the unlock sound
+    if (result === 2) {
+      failSound.current.currentTime = 0;
+      failSound.current.volume = 0.12;
+      failSound.current.play().catch((error) => {
+        console.error("Error playing sound:", error);
+      });
+
+      deniedSound.current.currentTime = 0;
+      deniedSound.current.volume = 0.2;
+      deniedSound.current.play().catch((error) => {
+        console.error("Error playing sound:", error);
+      });
+    }
   }
 
   function calculateLikeliness(password, guess) {
-    let matches = 0;
+    let matches = 0; // count of matching characters
     for (let i = 0; i < password.length; i++) {
+      // iterate over each character in password
+      // If the character at the same index in the password and guess is the same, increment the matches count
       if (password[i] === guess[i]) {
         matches++;
       }
     }
-    return matches;
+    return matches; // return the number of matching characters
   }
 
   return (
@@ -205,14 +349,14 @@ function GameBoard({ setPage }) {
       <section className="grid grid-cols-[1fr,2fr] md:grid-cols-[.3fr,2fr,.3fr,2fr,2.5fr] grid-rows-1 gap-1 md:gap-2 mt-6">
         <HexBlock hex={hex1} />
         <WordBlock
-          selectedWords={selectedWords}
+          selectedWords={firstBlockWords}
           handleHover={handleHover}
           handleWordClick={handleWordClick}
         />
 
         <HexBlock hex={hex2} />
         <WordBlock
-          selectedWords={selectedWords}
+          selectedWords={secondBlockWords}
           handleHover={handleHover}
           handleWordClick={handleWordClick}
         />
@@ -224,18 +368,6 @@ function GameBoard({ setPage }) {
           entryHistory={entryHistory}
         />
       </section>
-
-      {/* Feedback - Mobile */}
-      {/* <section className="flex md:hidden md:items-end col-span-2 h-auto">
-        <Typewriter
-          key={hoverWord}
-          words={[`> ${hoverWord}`]} // Use backticks to create a string with hoverWord
-          cursor
-          cursorBlinking
-          typeSpeed={40}
-        />
-        <h1 className="block">{hoverWord}</h1>
-      </section> */}
 
       <section className="flex mt-6 gap-3">
         {/* New Game */}
